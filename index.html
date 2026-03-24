@@ -320,7 +320,6 @@
             </div>
 
             <div class="dock-buttons">
-                <button id="refresh-btn" class="icon-btn" type="button" aria-label="Refresh">↻</button>
                 <button id="share-btn" class="share-btn" type="button">Show My Location</button>
             </div>
         </div>
@@ -345,7 +344,6 @@
             lastUpdated: document.getElementById('last-updated'),
             mapImage: document.getElementById('map-image'),
             mapWrapper: document.getElementById('map-wrapper'),
-            refreshBtn: document.getElementById('refresh-btn'),
             shareBtn: document.getElementById('share-btn'),
             statusBanner: document.getElementById('status-banner'),
             statusDetail: document.getElementById('status-detail'),
@@ -519,7 +517,6 @@
 
         els.mapImage.addEventListener('load', () => renderMarker(latestLocation));
         window.addEventListener('resize', () => renderMarker(latestLocation));
-        els.refreshBtn.addEventListener('click', refreshSavedLocation);
         els.shareBtn.addEventListener('click', shareCurrentLocation);
     </script>
 </body>
