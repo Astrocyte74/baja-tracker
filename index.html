@@ -531,6 +531,14 @@
             });
         }
 
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {
+                    // Offline support is best-effort; location lookups still work without the worker once loaded.
+                });
+            });
+        }
+
         renderLocation(readSavedLocation());
 
         els.mapImage.addEventListener('load', () => renderMarker(latestLocation));
