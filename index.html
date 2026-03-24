@@ -316,12 +316,12 @@
         <div class="dock-grid">
             <div class="dock-copy">
                 <strong>My Location</strong>
-                <span id="dock-detail">Nothing saved yet.</span>
+                <span id="dock-detail">Tap to place your location on the map.</span>
             </div>
 
             <div class="dock-buttons">
                 <button id="refresh-btn" class="icon-btn" type="button" aria-label="Refresh">↻</button>
-                <button id="share-btn" class="share-btn" type="button">Share Location</button>
+                <button id="share-btn" class="share-btn" type="button">Show My Location</button>
             </div>
         </div>
     </div>
@@ -447,9 +447,9 @@
 
             if (!location) {
                 els.lastUpdated.textContent = 'Tap the button to check your location';
-                els.dockDetail.textContent = 'Nothing saved yet.';
+                els.dockDetail.textContent = 'Tap to place your location on the map.';
                 els.exactLink.classList.add('hidden');
-                setStatus('Ready', 'Tap Share Location to place your current position on the map.', 'info');
+                setStatus('Ready', 'Tap Show My Location to place your current position on the map.', 'info');
                 return;
             }
 
@@ -499,7 +499,7 @@
                 }
 
                 els.shareBtn.disabled = false;
-                els.shareBtn.textContent = 'Share Location';
+                els.shareBtn.textContent = 'Show My Location';
             }, (error) => {
                 const message = error.code === error.PERMISSION_DENIED
                     ? 'Location permission was denied.'
@@ -507,7 +507,7 @@
 
                 setStatus('Location failed', message, 'warn');
                 els.shareBtn.disabled = false;
-                els.shareBtn.textContent = 'Share Location';
+                els.shareBtn.textContent = 'Show My Location';
             }, {
                 enableHighAccuracy: true,
                 timeout: 20000,
