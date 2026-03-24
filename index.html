@@ -44,7 +44,6 @@
         }
 
         .shell {
-            position: relative;
             border: 1px solid var(--line);
             border-radius: 28px;
             background: linear-gradient(180deg, rgba(252, 248, 240, 0.96), rgba(248, 241, 229, 0.9));
@@ -100,9 +99,9 @@
         .chip {
             border-radius: 999px;
             padding: 9px 12px;
-            font-size: 0.9rem;
+            font-size: 0.86rem;
             font-weight: 700;
-            color: var(--ink);
+            color: var(--muted);
             text-decoration: none;
         }
 
@@ -125,7 +124,7 @@
             height: auto;
         }
 
-        .friend-marker {
+        .marker {
             position: absolute;
             transform: translate(-50%, -100%);
             z-index: 2;
@@ -194,10 +193,6 @@
             align-items: center;
         }
 
-        .dock-copy {
-            min-width: 0;
-        }
-
         .dock-copy strong {
             display: block;
             font-size: 1rem;
@@ -233,15 +228,6 @@
             white-space: nowrap;
         }
 
-        .ghost-btn {
-            padding: 12px 14px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(47, 37, 26, 0.12);
-            color: var(--ink);
-            font-weight: 700;
-        }
-
         .icon-btn {
             width: 44px;
             height: 44px;
@@ -251,81 +237,6 @@
             color: var(--ink);
             font-size: 1rem;
             font-weight: 700;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            z-index: 40;
-            background: rgba(43, 34, 22, 0.42);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-
-        .modal-backdrop.open {
-            display: flex;
-        }
-
-        .modal {
-            width: min(100%, 460px);
-            border-radius: 24px;
-            border: 1px solid rgba(47, 37, 26, 0.12);
-            background: rgba(255, 250, 242, 0.98);
-            box-shadow: 0 28px 70px rgba(43, 34, 22, 0.28);
-            padding: 20px;
-        }
-
-        .modal h2 {
-            margin: 0 0 8px;
-            font-size: 1.5rem;
-        }
-
-        .modal p {
-            margin: 0;
-            color: var(--muted);
-            line-height: 1.5;
-        }
-
-        .field {
-            margin-top: 14px;
-        }
-
-        .field label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 700;
-        }
-
-        .field input {
-            width: 100%;
-            padding: 13px 14px;
-            border-radius: 14px;
-            border: 1px solid rgba(47, 37, 26, 0.16);
-            background: rgba(255, 255, 255, 0.9);
-            font: inherit;
-            color: var(--ink);
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 18px;
-        }
-
-        .modal-actions button {
-            flex: 1;
-        }
-
-        .modal-note {
-            margin-top: 12px;
-            color: var(--muted);
-            font-size: 0.92rem;
         }
 
         .tone-ok strong {
@@ -340,6 +251,10 @@
             color: var(--info);
         }
 
+        .hidden {
+            display: none !important;
+        }
+
         @media (max-width: 700px) {
             .topbar {
                 position: static;
@@ -349,7 +264,7 @@
 
             .top-actions {
                 margin-top: 10px;
-                justify-items: stretch;
+                justify-items: end;
             }
 
             .map-stage {
@@ -376,12 +291,11 @@
             <div class="topbar">
                 <div class="brand">
                     <h1>Baja Tracker</h1>
-                    <p id="last-updated">Waiting for first update</p>
+                    <p id="last-updated">Tap the button to check your location</p>
                 </div>
 
                 <div class="top-actions">
-                    <a id="exact-link" class="chip hidden" href="#" target="_blank" rel="noreferrer">Open Exact Point</a>
-                    <button id="setup-open-btn" class="chip" type="button">Setup</button>
+                    <a id="exact-link" class="chip hidden" href="#" target="_blank" rel="noreferrer">Exact Point</a>
                 </div>
             </div>
 
@@ -392,8 +306,8 @@
             </div>
 
             <div class="status-banner tone-info" id="status-banner">
-                <strong id="status-title">Loading map</strong>
-                <span id="status-detail">Checking the latest shared location.</span>
+                <strong id="status-title">Ready</strong>
+                <span id="status-detail">Tap Share Location to place your current position on the map.</span>
             </div>
         </section>
     </main>
@@ -402,7 +316,7 @@
         <div class="dock-grid">
             <div class="dock-copy">
                 <strong>My Location</strong>
-                <span id="dock-detail">Tap once to save the current location.</span>
+                <span id="dock-detail">Nothing saved yet.</span>
             </div>
 
             <div class="dock-buttons">
@@ -412,31 +326,9 @@
         </div>
     </div>
 
-    <div id="setup-modal-backdrop" class="modal-backdrop" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setup-title">
-            <h2 id="setup-title">One-Time Setup</h2>
-            <p>Paste the GitHub token once on this phone. After that, the main button just works.</p>
-
-            <div class="field">
-                <label for="token-input">GitHub token with <code>gist</code> scope</label>
-                <input id="token-input" type="password" placeholder="ghp_xxxxxxxxxxxxx" autocapitalize="off" autocorrect="off" spellcheck="false">
-            </div>
-
-            <div class="modal-actions">
-                <button id="modal-cancel-btn" class="ghost-btn" type="button">Cancel</button>
-                <button id="modal-save-btn" class="share-btn" type="button">Save</button>
-            </div>
-
-            <p class="modal-note">The token stays only in this browser on this iPhone.</p>
-        </div>
-    </div>
-
     <script>
         const CONFIG = {
-            GIST_ID: '06a3d4ea9f93c9367dcfdd77ba19d817',
-            GIST_URL: 'https://gist.githubusercontent.com/Astrocyte74/06a3d4ea9f93c9367dcfdd77ba19d817/raw/location.json',
-            DEFAULT_NAME: 'My Location',
-            STORAGE_KEY: 'baja-tracker-main-config',
+            STORAGE_KEY: 'baja-tracker-local-location',
             MAP_BOUNDS: {
                 north: 33.2475,
                 south: 22.3387,
@@ -446,7 +338,6 @@
         };
 
         let latestLocation = null;
-        let pendingShareAfterSave = false;
 
         const els = {
             dockDetail: document.getElementById('dock-detail'),
@@ -454,55 +345,12 @@
             lastUpdated: document.getElementById('last-updated'),
             mapImage: document.getElementById('map-image'),
             mapWrapper: document.getElementById('map-wrapper'),
-            modalBackdrop: document.getElementById('setup-modal-backdrop'),
-            modalCancelBtn: document.getElementById('modal-cancel-btn'),
-            modalSaveBtn: document.getElementById('modal-save-btn'),
             refreshBtn: document.getElementById('refresh-btn'),
-            setupOpenBtn: document.getElementById('setup-open-btn'),
             shareBtn: document.getElementById('share-btn'),
             statusBanner: document.getElementById('status-banner'),
             statusDetail: document.getElementById('status-detail'),
-            statusTitle: document.getElementById('status-title'),
-            tokenInput: document.getElementById('token-input')
+            statusTitle: document.getElementById('status-title')
         };
-
-        function readConfig() {
-            try {
-                return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || {};
-            } catch (error) {
-                return {};
-            }
-        }
-
-        function saveConfig() {
-            const config = {
-                token: els.tokenInput.value.trim()
-            };
-
-            localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(config));
-            closeSetupModal();
-            setStatus('Setup saved', 'The share button is ready on this phone.', 'ok');
-
-            if (pendingShareAfterSave) {
-                pendingShareAfterSave = false;
-                shareCurrentLocation();
-            }
-        }
-
-        function openSetupModal() {
-            const config = readConfig();
-            els.tokenInput.value = config.token || '';
-            els.modalBackdrop.classList.add('open');
-            els.modalBackdrop.setAttribute('aria-hidden', 'false');
-            setTimeout(() => {
-                els.tokenInput.focus();
-            }, 0);
-        }
-
-        function closeSetupModal() {
-            els.modalBackdrop.classList.remove('open');
-            els.modalBackdrop.setAttribute('aria-hidden', 'true');
-        }
 
         function setStatus(title, detail, tone) {
             els.statusBanner.classList.remove('tone-ok', 'tone-warn', 'tone-info');
@@ -556,7 +404,7 @@
         }
 
         function clearMarker() {
-            els.mapWrapper.querySelectorAll('.friend-marker').forEach((node) => node.remove());
+            els.mapWrapper.querySelectorAll('.marker').forEach((node) => node.remove());
         }
 
         function renderMarker(location) {
@@ -568,11 +416,11 @@
 
             const pos = latLngToPixel(location.lat, location.lng);
             const marker = document.createElement('div');
-            marker.className = 'friend-marker';
+            marker.className = 'marker';
             marker.style.left = `${pos.x}px`;
             marker.style.top = `${pos.y}px`;
             marker.innerHTML = `
-                <div class="marker-label">${location.name}</div>
+                <div class="marker-label">You</div>
                 <svg class="marker-pin" viewBox="0 0 30 40" aria-hidden="true">
                     <path d="M15 0C6.7 0 0 6.7 0 15c0 11 15 25 15 25s15-14 15-25C30 6.7 23.3 0 15 0z" fill="#c76030"></path>
                     <circle cx="15" cy="14" r="7" fill="white"></circle>
@@ -581,125 +429,83 @@
             els.mapWrapper.appendChild(marker);
         }
 
+        function readSavedLocation() {
+            try {
+                return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function saveLocation(location) {
+            localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(location));
+        }
+
         function renderLocation(location) {
             latestLocation = location;
             renderMarker(location);
 
             if (!location) {
-                els.lastUpdated.textContent = 'Waiting for first update';
-                els.dockDetail.textContent = 'Tap once to save the current location.';
+                els.lastUpdated.textContent = 'Tap the button to check your location';
+                els.dockDetail.textContent = 'Nothing saved yet.';
                 els.exactLink.classList.add('hidden');
-                setStatus('No location yet', 'Tap Share Location to send the first point.', 'info');
+                setStatus('Ready', 'Tap Share Location to place your current position on the map.', 'info');
                 return;
             }
 
-            const inside = isInsideBaja(location.lat, location.lng);
-            const exactUrl = getExactMapUrl(location.lat, location.lng);
-
             els.lastUpdated.textContent = `Updated ${formatTimestamp(location.timestamp)}`;
-            els.exactLink.href = exactUrl;
-            els.exactLink.classList.remove('hidden');
 
-            if (inside) {
-                els.dockDetail.textContent = 'Saved point is visible on the Baja map.';
+            if (isInsideBaja(location.lat, location.lng)) {
+                els.dockDetail.textContent = 'Your current spot is on the Baja map.';
+                els.exactLink.classList.add('hidden');
                 setStatus('Pin placed on the map', `Saved at ${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}.`, 'ok');
             } else {
-                els.dockDetail.textContent = 'Saved point is outside Baja right now.';
-                setStatus('Outside the Baja map bounds', 'The GPS point was saved successfully, but this image can only show pins inside Baja. Use Open Exact Point for the real position.', 'warn');
+                els.dockDetail.textContent = 'Your saved spot is outside Baja.';
+                els.exactLink.href = getExactMapUrl(location.lat, location.lng);
+                els.exactLink.classList.remove('hidden');
+                setStatus('Outside the Baja map bounds', 'Your location was captured, but this image only shows points inside Baja. Exact Point opens the live coordinates.', 'warn');
             }
         }
 
-        async function fetchLatestLocation() {
-            const response = await fetch(`${CONFIG.GIST_URL}?t=${Date.now()}`, {
-                cache: 'no-store'
-            });
-
-            if (!response.ok) {
-                throw new Error(`Could not load location (${response.status}).`);
-            }
-
-            return response.json();
+        function refreshSavedLocation() {
+            renderLocation(readSavedLocation());
         }
 
-        async function updateGist(token, payload) {
-            const response = await fetch(`https://api.github.com/gists/${encodeURIComponent(CONFIG.GIST_ID)}`, {
-                method: 'PATCH',
-                headers: {
-                    'Accept': 'application/vnd.github+json',
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json',
-                    'X-GitHub-Api-Version': '2022-11-28'
-                },
-                body: JSON.stringify({
-                    files: {
-                        'location.json': {
-                            content: JSON.stringify(payload, null, 2)
-                        }
-                    }
-                })
-            });
-
-            if (!response.ok) {
-                const body = await response.text();
-                throw new Error(`GitHub API returned ${response.status}: ${body}`);
-            }
-        }
-
-        async function refreshLocation() {
-            els.refreshBtn.disabled = true;
-
-            try {
-                const location = await fetchLatestLocation();
-                renderLocation(location);
-            } catch (error) {
-                setStatus('Could not refresh', error.message, 'warn');
-            } finally {
-                els.refreshBtn.disabled = false;
-            }
-        }
-
-        async function shareCurrentLocation() {
-            const config = readConfig();
-
-            if (!config.token) {
-                pendingShareAfterSave = true;
-                openSetupModal();
+        function shareCurrentLocation() {
+            if (!navigator.geolocation) {
+                setStatus('Unavailable', 'This browser cannot read location.', 'warn');
                 return;
             }
 
             els.shareBtn.disabled = true;
-            els.shareBtn.textContent = 'Sharing...';
+            els.shareBtn.textContent = 'Locating...';
             setStatus('Getting current location', 'Allow location access if the phone asks.', 'info');
 
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                try {
-                    const payload = {
-                        name: CONFIG.DEFAULT_NAME,
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        timestamp: new Date().toISOString()
-                    };
+            navigator.geolocation.getCurrentPosition((position) => {
+                const payload = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    timestamp: new Date().toISOString(),
+                    accuracy: Math.round(position.coords.accuracy)
+                };
 
-                    await updateGist(config.token, payload);
-                    renderLocation(payload);
+                saveLocation(payload);
+                renderLocation(payload);
 
-                    const accuracy = Math.round(position.coords.accuracy);
-                    if (isInsideBaja(payload.lat, payload.lng)) {
-                        setStatus('Location shared', `Accuracy about ${accuracy} meters. The pin above matches the saved check-in.`, 'ok');
-                    } else {
-                        setStatus('Location shared', `Accuracy about ${accuracy} meters. The point was saved, but it sits outside the Baja map image.`, 'warn');
-                    }
-                } catch (error) {
-                    setStatus('Share failed', 'Check the saved token and try again.', 'warn');
-                } finally {
-                    els.shareBtn.disabled = false;
-                    els.shareBtn.textContent = 'Share Location';
+                if (isInsideBaja(payload.lat, payload.lng)) {
+                    setStatus('Location saved', `Accuracy about ${payload.accuracy} meters. The pin above is your current location.`, 'ok');
+                } else {
+                    setStatus('Location saved', `Accuracy about ${payload.accuracy} meters. Your spot is outside Baja, so the map image cannot place the pin.`, 'warn');
                 }
+
+                els.shareBtn.disabled = false;
+                els.shareBtn.textContent = 'Share Location';
             }, (error) => {
                 const message = error.code === error.PERMISSION_DENIED
                     ? 'Location permission was denied.'
                     : 'Could not get the current location.';
-                setStatus('Share failed', message, 'warn');
+
+                setStatus('Location failed', message, 'warn');
                 els.shareBtn.disabled = false;
                 els.shareBtn.textContent = 'Share Location';
             }, {
@@ -709,29 +515,12 @@
             });
         }
 
-        const initialConfig = readConfig();
-        els.tokenInput.value = initialConfig.token || '';
+        renderLocation(readSavedLocation());
 
-        els.mapImage.addEventListener('load', () => {
-            renderMarker(latestLocation);
-            refreshLocation();
-        });
-
+        els.mapImage.addEventListener('load', () => renderMarker(latestLocation));
         window.addEventListener('resize', () => renderMarker(latestLocation));
-        els.refreshBtn.addEventListener('click', refreshLocation);
+        els.refreshBtn.addEventListener('click', refreshSavedLocation);
         els.shareBtn.addEventListener('click', shareCurrentLocation);
-        els.setupOpenBtn.addEventListener('click', openSetupModal);
-        els.modalCancelBtn.addEventListener('click', () => {
-            pendingShareAfterSave = false;
-            closeSetupModal();
-        });
-        els.modalSaveBtn.addEventListener('click', saveConfig);
-        els.modalBackdrop.addEventListener('click', (event) => {
-            if (event.target === els.modalBackdrop) {
-                pendingShareAfterSave = false;
-                closeSetupModal();
-            }
-        });
     </script>
 </body>
 </html>
