@@ -171,6 +171,20 @@
             font-weight: 700;
         }
 
+        .attribution {
+            margin: 0 14px 16px;
+            padding: 0 2px;
+            color: var(--muted);
+            font-size: 0.88rem;
+            text-align: right;
+        }
+
+        .attribution a {
+            color: var(--muted);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(47, 37, 26, 0.2);
+        }
+
         .dock {
             position: fixed;
             left: 50%;
@@ -308,6 +322,10 @@
             <div class="status-banner tone-info" id="status-banner">
                 <strong id="status-title">Ready</strong>
                 <span id="status-detail">Tap Share Location to place your current position on the map.</span>
+            </div>
+
+            <div class="attribution">
+                Map source: <a href="https://achoiceland.com/" target="_blank" rel="noreferrer">A Choice Land</a>
             </div>
         </section>
     </main>
