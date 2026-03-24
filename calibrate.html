@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Calibration Tool</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+        }
+        h1 { color: #e94560; margin-bottom: 10px; }
+        .instructions {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .map-container {
+            position: relative;
+            display: inline-block;
+            border: 3px solid #e94560;
+            border-radius: 8px;
+            cursor: crosshair;
+        }
+        .map-container img { display: block; max-width: 100%; }
+        .calibration-point {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #e94560;
+            border: 2px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            z-index: 10;
+        }
+        .calibration-point:hover { background: #ff6b8a; }
+        .calibration-point.selected { background: #4ade80; }
+        .point-list {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .point-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #0f3460;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .point-item input {
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            background: #16213e;
+            color: white;
+            width: 100px;
+        }
+        .point-item label { font-size: 12px; color: #aaa; }
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #ff6b8a; }
+        .output {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+        }
+        .reference-locations {
+            margin-top: 20px;
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .reference-locations li {
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .reference-locations li:hover { background: #0f3460; }
+    </style>
+</head>
+<body>
+    <h1>🗺️ Map Calibration Tool</h1>
+
+    <div class="instructions">
+        <h3>How to Calibrate:</h3>
+        <ol>
+            <li>Click on a known location on the map</li>
+            <li>Enter the real latitude/longitude for that point</li>
+            <li>Add at least 2 points (ideally 3-4 at corners)</li>
+            <li>Click "Calculate Bounds" to get your MAP_BOUNDS</li>
+        </ol>
+    </div>
+
+    <div class="map-container" id="map-container">
+        <img src="MapVertical.jpg" alt="Baja Map" id="map">
+    </div>
+
+    <div class="reference-locations">
+        <h3>📍 Known Baja Locations (click to auto-fill):</h3>
+        <ul style="list-style: none; padding: 0;">
+            <li onclick="setReference(32.5333, -117.1167, 'Tijuana')">🌮 Tijuana: 32.5333°N, 117.1167°W</li>
+            <li onclick="setReference(30.8409, -116.0576, 'Ensenada')">🌊 Ensenada: 30.8409°N, 116.0576°W</li>
+            <li onclick="setReference(27.9478, -114.0433, 'Guerrero Negro')">🦎 Guerrero Negro: 27.9478°N, 114.0433°W</li>
+            <li onclick="setReference(24.1426, -110.3128, 'La Paz')">🏖️ La Paz: 24.1426°N, 110.3128°W</li>
+            <li onclick="setReference(22.8905, -109.9167, 'Cabo San Lucas')">🌅 Cabo San Lucas: 22.8905°N, 109.9167°W</li>
+            <li onclick="setReference(23.0481, -109.7097, 'San José del Cabo')">🌴 San José del Cabo: 23.0481°N, 109.7097°W</li>
+            <li onclick="setReference(29.0667, -110.9667, 'Hermosillo')">🌵 Hermosillo: 29.0667°N, 110.9667°W</li>
+        </ul>
+    </div>
+
+    <div class="point-list" id="point-list">
+        <h3>Calibration Points:</h3>
+        <p style="color: #888;">Click on the map to add points...</p>
+    </div>
+
+    <div style="margin-top: 15px;">
+        <button onclick="calculateBounds()">📐 Calculate Bounds</button>
+        <button onclick="clearPoints()">🗑️ Clear All</button>
+    </div>
+
+    <div class="output" id="output" style="display: none;">
+        <h3>Copy this to your index.html CONFIG:</h3>
+        <pre id="bounds-output"></pre>
+    </div>
+
+    <script>
+        let points = [];
+        let selectedPoint = null;
+        let nextPointId = 1;
+
+        const mapContainer = document.getElementById('map-container');
+        const mapImg = document.getElementById('map');
+
+        // Wait for image to load
+        mapImg.onload = function() {
+            console.log('Map loaded');
+        };
+
+        mapContainer.addEventListener('click', function(e) {
+            const rect = mapImg.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const xPercent = x / rect.width;
+            const yPercent = y / rect.height;
+
+            addPoint(x, y, xPercent, yPercent);
+        });
+
+        function addPoint(x, y, xPercent, yPercent) {
+            const id = nextPointId++;
+
+            // Create visual marker
+            const marker = document.createElement('div');
+            marker.className = 'calibration-point';
+            marker.style.left = x + 'px';
+            marker.style.top = y + 'px';
+            marker.id = 'marker-' + id;
+            marker.onclick = function(e) {
+                e.stopPropagation();
+                selectPoint(id);
+            };
+            mapContainer.appendChild(marker);
+
+            // Add to points array
+            points.push({
+                id: id,
+                x: x,
+                y: y,
+                xPercent: xPercent,
+                yPercent: yPercent,
+                lat: null,
+                lng: null,
+                name: 'Point ' + id
+            });
+
+            updatePointList();
+            selectPoint(id);
+        }
+
+        function selectPoint(id) {
+            selectedPoint = id;
+            document.querySelectorAll('.calibration-point').forEach(m => m.classList.remove('selected'));
+            document.getElementById('marker-' + id)?.classList.add('selected');
+            updatePointList();
+        }
+
+        function updatePointList() {
+            const list = document.getElementById('point-list');
+
+            if (points.length === 0) {
+                list.innerHTML = '<h3>Calibration Points:</h3><p style="color: #888;">Click on the map to add points...</p>';
+                return;
+            }
+
+            let html = '<h3>Calibration Points:</h3>';
+
+            points.forEach(p => {
+                const isSelected = p.id === selectedPoint;
+                html += `
+                    <div class="point-item" style="${isSelected ? 'border: 2px solid #e94560;' : ''}">
+                        <span style="width: 30px;">#${p.id}</span>
+                        <div>
+                            <label>Latitude (°N)</label>
+                            <input type="number" step="0.0001" value="${p.lat || ''}"
+                                   onchange="updateLatLng(${p.id}, 'lat', this.value)"
+                                   placeholder="e.g., 24.1426">
+                        </div>
+                        <div>
+                            <label>Longitude (°W, use negative)</label>
+                            <input type="number" step="0.0001" value="${p.lng || ''}"
+                                   onchange="updateLatLng(${p.id}, 'lng', this.value)"
+                                   placeholder="e.g., -110.3128">
+                        </div>
+                        <button onclick="removePoint(${p.id})" style="padding: 5px 10px;">✕</button>
+                    </div>
+                `;
+            });
+
+            list.innerHTML = html;
+        }
+
+        function updateLatLng(id, field, value) {
+            const point = points.find(p => p.id === id);
+            if (point) {
+                point[field] = parseFloat(value);
+            }
+        }
+
+        function removePoint(id) {
+            points = points.filter(p => p.id !== id);
+            document.getElementById('marker-' + id)?.remove();
+            if (selectedPoint === id) selectedPoint = null;
+            updatePointList();
+        }
+
+        function clearPoints() {
+            points = [];
+            nextPointId = 1;
+            document.querySelectorAll('.calibration-point').forEach(m => m.remove());
+            selectedPoint = null;
+            updatePointList();
+            document.getElementById('output').style.display = 'none';
+        }
+
+        function setReference(lat, lng, name) {
+            if (selectedPoint) {
+                const point = points.find(p => p.id === selectedPoint);
+                if (point) {
+                    point.lat = lat;
+                    point.lng = lng;
+                    point.name = name;
+                    updatePointList();
+                }
+            } else {
+                alert('First click on the map where this location is, then select from the list.');
+            }
+        }
+
+        function calculateBounds() {
+            const validPoints = points.filter(p => p.lat !== null && p.lng !== null);
+
+            if (validPoints.length < 2) {
+                alert('Need at least 2 points with lat/lng values');
+                return;
+            }
+
+            // Simple linear interpolation for bounds
+            // This assumes the map is roughly aligned with north up
+            const lats = validPoints.map(p => p.lat);
+            const lngs = validPoints.map(p => p.lng);
+            const yPercents = validPoints.map(p => p.yPercent);
+            const xPercents = validPoints.map(p => p.xPercent);
+
+            // Calculate bounds using linear regression
+            // For y (latitude): lat = north - yPercent * (north - south)
+            // For x (longitude): lng = west + xPercent * (east - west)
+
+            // Simple approach: use min/max
+            const north = Math.max(...lats);
+            const south = Math.min(...lats);
+            const west = Math.min(...lngs);
+            const east = Math.max(...lngs);
+
+            // Better approach: linear regression
+            // Using the fact that yPercent = (north - lat) / (north - south)
+            // And xPercent = (lng - west) / (east - west)
+
+            // For better accuracy with 2+ points, do linear fit
+            let sumX = 0, sumY = 0, sumLng = 0, sumLat = 0;
+            let sumX2 = 0, sumY2 = 0, sumXLn = 0, sumYLat = 0;
+            const n = validPoints.length;
+
+            validPoints.forEach(p => {
+                sumX += p.xPercent;
+                sumY += p.yPercent;
+                sumLng += p.lng;
+                sumLat += p.lat;
+                sumX2 += p.xPercent * p.xPercent;
+                sumY2 += p.yPercent * p.yPercent;
+                sumXLn += p.xPercent * p.lng;
+                sumYLat += p.yPercent * p.lat;
+            });
+
+            // Linear regression: lng = west + xPercent * (east - west)
+            // lng = a + b * xPercent
+            const bLng = (n * sumXLn - sumX * sumLng) / (n * sumX2 - sumX * sumX);
+            const aLng = (sumLng - bLng * sumX) / n;
+            const calcWest = aLng;
+            const calcEast = aLng + bLng;
+
+            // Linear regression: lat = north - yPercent * (north - south)
+            // lat = c - d * yPercent (negative because y increases downward in pixels)
+            const dLat = (n * sumYLat - sumY * sumLat) / (n * sumY2 - sumY * sumY);
+            const cLat = (sumLat - dLat * sumY) / n;
+            const calcNorth = cLat;
+            const calcSouth = cLat + dLat;
+
+            const output = `MAP_BOUNDS: {
+    north: ${calcNorth.toFixed(4)},  // Top of map
+    south: ${calcSouth.toFixed(4)},  // Bottom of map
+    west: ${calcWest.toFixed(4)},   // Left of map (Pacific)
+    east: ${calcEast.toFixed(4)}    // Right of map (Gulf)
+}`;
+
+            document.getElementById('bounds-output').textContent = output;
+            document.getElementById('output').style.display = 'block';
+
+            console.log('Calculated bounds:', { north: calcNorth, south: calcSouth, west: calcWest, east: calcEast });
+        }
+    </script>
+</body>
+</html>

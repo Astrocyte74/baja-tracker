@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Shortcut Generator - Baja Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #e94560; }
+        .card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #aaa;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            background: #0f3460;
+            color: #fff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button:hover { background: #ff6b8a; }
+        pre {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .note {
+            background: #0f3460;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border-left: 3px solid #4ade80;
+            margin: 10px 0;
+        }
+        a { color: #4ade80; }
+    </style>
+</head>
+<body>
+    <h1>📱 Generate iOS Shortcut</h1>
+    <p>Fill in your details below to generate a custom iOS Shortcut for sharing your location.</p>
+
+    <div class="card">
+        <label>Your Display Name</label>
+        <input type="text" id="friendName" placeholder="e.g., John Doe" value="Traveler">
+
+        <label>GitHub Username</label>
+        <input type="text" id="githubUser" placeholder="your-username">
+
+        <label>Gist ID</label>
+        <input type="text" id="gistId" placeholder="abc123def456...">
+
+        <label>GitHub Personal Access Token</label>
+        <input type="text" id="githubToken" placeholder="ghp_xxxxxxxxxxxx">
+
+        <button onclick="generateShortcut()">Generate Shortcut</button>
+    </div>
+
+    <div id="output" style="display:none;">
+        <h2>✅ Your Shortcut is Ready!</h2>
+
+        <div class="card">
+            <h3>Option 1: Copy Shortcut URL</h3>
+            <p>Copy this URL and open it on your iPhone:</p>
+            <pre id="shortcutUrl"></pre>
+        </div>
+
+        <div class="card">
+            <h3>Option 2: Manual Setup</h3>
+            <p>Follow these steps in the iOS Shortcuts app:</p>
+            <div id="manualSteps"></div>
+        </div>
+
+        <div class="card">
+            <h3>Your JSON Template</h3>
+            <p>Use this in the shortcut's Text action:</p>
+            <pre id="jsonTemplate"></pre>
+        </div>
+
+        <div class="card">
+            <h3>API Request Details</h3>
+            <p><strong>URL:</strong> <code id="apiUrl"></code></p>
+            <p><strong>Method:</strong> PATCH</p>
+            <p><strong>Headers:</strong></p>
+            <pre id="headers"></pre>
+        </div>
+    </div>
+
+    <script>
+        function generateShortcut() {
+            const name = document.getElementById('friendName').value || 'Traveler';
+            const githubUser = document.getElementById('githubUser').value;
+            const gistId = document.getElementById('gistId').value;
+            const token = document.getElementById('githubToken').value;
+
+            if (!gistId || !token) {
+                alert('Please fill in Gist ID and Token');
+                return;
+            }
+
+            // Show output
+            document.getElementById('output').style.display = 'block';
+
+            // JSON template
+            const jsonTemplate = `{
+  "name": "${name}",
+  "lat": {{latitude}},
+  "lng": {{longitude}},
+  "timestamp": "{{current_date_iso8601}}"
+}`;
+            document.getElementById('jsonTemplate').textContent = jsonTemplate;
+
+            // API URL
+            const apiUrl = `https://api.github.com/gists/${gistId}`;
+            document.getElementById('apiUrl').textContent = apiUrl;
+
+            // Headers
+            document.getElementById('headers').textContent = `Authorization: token ${token}
+Content-Type: application/json`;
+
+            // Shortcut URL (deep link to create shortcut)
+            const shortcutUrl = `shortcuts://create-shortcut`;
+            document.getElementById('shortcutUrl').textContent = shortcutUrl;
+
+            // Manual steps
+            document.getElementById('manualSteps').innerHTML = `
+                <ol style="padding-left: 20px; line-height: 2;">
+                    <li>Open <strong>Shortcuts</strong> app</li>
+                    <li>Tap <strong>+</strong> to create new shortcut</li>
+                    <li>Add <strong>"Get Current Location"</strong> action</li>
+                    <li>Add <strong>"Text"</strong> action with this JSON:<br><pre style="font-size: 12px;">${jsonTemplate.replace(/</g, '&lt;')}</pre></li>
+                    <li>Replace <code>{{latitude}}</code> with Location → Latitude variable</li>
+                    <li>Replace <code>{{longitude}}</code> with Location → Longitude variable</li>
+                    <li>Replace <code>{{current_date_iso8601}}</code> with Current Date (ISO8601 format)</li>
+                    <li>Add <strong>"Get Contents of URL"</strong> action:
+                        <ul>
+                            <li>URL: <code>${apiUrl}</code></li>
+                            <li>Method: PATCH</li>
+                            <li>Headers: Authorization = <code>token ${token}</code></li>
+                            <li>Request Body: JSON</li>
+                            <li>Add: files → location.json → content = [your text]</li>
+                        </ul>
+                    </li>
+                    <li>Add <strong>"Show Notification"</strong> action</li>
+                    <li>Name shortcut "Baja Tracker" and add to Home Screen</li>
+                </ol>
+            `;
+        }
+    </script>
+</body>
+</html>

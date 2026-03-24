@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baja Tracker - Find My Friends</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+        }
+
+        .header {
+            padding: 20px;
+            text-align: center;
+            background: #16213e;
+            border-bottom: 2px solid #e94560;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .status {
+            padding: 15px 20px;
+            background: #0f3460;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #666;
+        }
+
+        .status-dot.online {
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            border: 3px solid #e94560;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        #map-image {
+            width: 100%;
+            display: block;
+        }
+
+        .friend-marker {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .friend-marker:hover {
+            transform: translate(-50%, -100%) scale(1.2);
+        }
+
+        .marker-pin {
+            width: 30px;
+            height: 40px;
+            position: relative;
+        }
+
+        .marker-pin svg {
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .marker-label {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e94560;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            margin-bottom: 5px;
+        }
+
+        .info-panel {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .info-card {
+            background: #16213e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .info-card h3 {
+            color: #e94560;
+            margin-bottom: 10px;
+        }
+
+        .location-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-item label {
+            display: block;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 3px;
+        }
+
+        .detail-item span {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .refresh-btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #ff6b8a;
+        }
+
+        .refresh-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .setup-instructions {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px 40px;
+        }
+
+        .setup-instructions h2 {
+            color: #e94560;
+            margin-bottom: 15px;
+        }
+
+        .setup-instructions pre {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+        }
+
+        .setup-instructions code {
+            color: #4ade80;
+        }
+
+        .error-message {
+            background: #dc2626;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ Baja Tracker</h1>
+        <p>Track friends on the Book of Mormon lands map</p>
+    </div>
+
+    <div class="status">
+        <div class="status-item">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Checking for location...</span>
+        </div>
+        <button class="refresh-btn" id="refresh-btn" onclick="fetchLocation()">
+            🔄 Refresh
+        </button>
+    </div>
+
+    <div class="map-container">
+        <div class="map-wrapper" id="map-wrapper">
+            <img id="map-image" src="MapVertical.jpg" alt="Baja California Map">
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-card" id="location-card" style="display: none;">
+            <h3>📍 Current Location</h3>
+            <div class="location-details">
+                <div class="detail-item">
+                    <label>Friend</label>
+                    <span id="friend-name">-</span>
+                </div>
+                <div class="detail-item">
+                    <label>Latitude</label>
+                    <span id="lat-display">-</span>
+                </div>
+                <div class="detail-item">
+                    <label>Longitude</label>
+                    <span id="lng-display">-</span>
+                </div>
+                <div class="detail-item">
+                    <label>Last Update</label>
+                    <span id="time-display">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h3>ℹ️ How This Works</h3>
+            <p>Your friend runs an iOS Shortcut that sends their location to this map. The shortcut uses GitHub Gist to store the location data.</p>
+        </div>
+    </div>
+
+    <div class="setup-instructions">
+        <h2>📱 iOS Shortcut Setup</h2>
+        <p>Download the shortcut and configure it with your GitHub Gist ID and token.</p>
+
+        <h3>Step 1: Create a GitHub Gist</h3>
+        <p>Go to <a href="https://gist.github.com" target="_blank" style="color: #4ade80;">gist.github.com</a> and create a new gist:</p>
+        <pre>{
+  "name": "Traveler",
+  "lat": 25.0,
+  "lng": -111.0,
+  "timestamp": "2024-01-01T00:00:00Z"
+}</pre>
+        <p>Copy the Gist ID from the URL (the long alphanumeric string after <code>gist.github.com/</code>)</p>
+
+        <h3>Step 2: Create a GitHub Personal Access Token</h3>
+        <p>Go to <a href="https://github.com/settings/tokens/new" target="_blank" style="color: #4ade80;">GitHub Token Settings</a></p>
+        <ul>
+            <li>Name it "Baja Tracker"</li>
+            <li>Select only <code>gist</code> scope</li>
+            <li>Copy the token</li>
+        </ul>
+
+        <h3>Step 3: Add Shortcut Configuration</h3>
+        <p>Edit the shortcut and replace these values:</p>
+        <pre>GIST_ID: "your-gist-id-here"
+GITHUB_TOKEN: "your-token-here"</pre>
+    </div>
+
+    <script>
+        // =====================================================
+        // CONFIGURATION - Edit these values
+        // =====================================================
+        const CONFIG = {
+            // GitHub Gist ID where location is stored
+            GIST_ID: 'YOUR_GIST_ID_HERE',
+
+            // Raw GitHubusercontent URL (works without token for public gists)
+            GIST_URL: 'https://gist.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_GIST_ID/raw/location.json',
+
+            // Map bounds (lat/lng of map corners)
+            // Adjust these to match your map's georeferencing
+            MAP_BOUNDS: {
+                north: 32.5,   // Top of map (US border area)
+                south: 22.5,   // Bottom of map (Cabo San Lucas)
+                west: -118.5,  // Left of map (Pacific)
+                east: -109.0   // Right of map (Gulf of California)
+            },
+
+            // How often to auto-refresh (milliseconds)
+            REFRESH_INTERVAL: 60000, // 1 minute
+
+            // Default friend name if not in data
+            DEFAULT_NAME: 'Traveler'
+        };
+
+        // =====================================================
+        // MAP FUNCTIONS
+        // =====================================================
+
+        let refreshTimer = null;
+
+        /**
+         * Convert latitude/longitude to pixel coordinates on the map
+         */
+        function latLngToPixel(lat, lng) {
+            const mapImg = document.getElementById('map-image');
+            const mapBounds = CONFIG.MAP_BOUNDS;
+
+            // Calculate percentage position
+            const xPercent = (lng - mapBounds.west) / (mapBounds.east - mapBounds.west);
+            const yPercent = (mapBounds.north - lat) / (mapBounds.north - mapBounds.south);
+
+            // Convert to pixels
+            const x = xPercent * mapImg.clientWidth;
+            const y = yPercent * mapImg.clientHeight;
+
+            return { x, y };
+        }
+
+        /**
+         * Create a marker element for a friend's location
+         */
+        function createMarker(friend) {
+            const marker = document.createElement('div');
+            marker.className = 'friend-marker';
+            marker.id = 'friend-marker';
+
+            const pos = latLngToPixel(friend.lat, friend.lng);
+            marker.style.left = pos.x + 'px';
+            marker.style.top = pos.y + 'px';
+
+            marker.innerHTML = `
+                <div class="marker-label">${friend.name || CONFIG.DEFAULT_NAME}</div>
+                <div class="marker-pin">
+                    <svg width="30" height="40" viewBox="0 0 30 40">
+                        <path d="M15 0C6.7 0 0 6.7 0 15c0 11 15 25 15 25s15-14 15-25C30 6.7 23.3 0 15 0z" fill="#e94560"/>
+                        <circle cx="15" cy="14" r="7" fill="white"/>
+                    </svg>
+                </div>
+            `;
+
+            return marker;
+        }
+
+        /**
+         * Display friend(s) on the map
+         */
+        function displayOnMap(data) {
+            const mapWrapper = document.getElementById('map-wrapper');
+
+            // Remove existing markers
+            document.querySelectorAll('.friend-marker').forEach(m => m.remove());
+
+            // Handle single friend or array
+            const friends = Array.isArray(data) ? data : [data];
+
+            friends.forEach(friend => {
+                // Validate coordinates are within bounds
+                if (friend.lat >= CONFIG.MAP_BOUNDS.south &&
+                    friend.lat <= CONFIG.MAP_BOUNDS.north &&
+                    friend.lng >= CONFIG.MAP_BOUNDS.west &&
+                    friend.lng <= CONFIG.MAP_BOUNDS.east) {
+
+                    const marker = createMarker(friend);
+                    mapWrapper.appendChild(marker);
+
+                    // Update info panel
+                    document.getElementById('location-card').style.display = 'block';
+                    document.getElementById('friend-name').textContent = friend.name || CONFIG.DEFAULT_NAME;
+                    document.getElementById('lat-display').textContent = friend.lat.toFixed(6);
+                    document.getElementById('lng-display').textContent = friend.lng.toFixed(6);
+                    document.getElementById('time-display').textContent = formatTime(friend.timestamp);
+
+                    // Update status
+                    document.getElementById('status-dot').classList.add('online');
+                    document.getElementById('status-text').textContent = `${friend.name || 'Friend'} is on the map!`;
+                } else {
+                    document.getElementById('status-text').textContent = 'Location is outside map bounds';
+                }
+            });
+        }
+
+        /**
+         * Format timestamp for display
+         */
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Unknown';
+
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`;
+
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+
+        // =====================================================
+        // DATA FETCHING
+        // =====================================================
+
+        async function fetchLocation() {
+            const btn = document.getElementById('refresh-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Loading...';
+
+            try {
+                // Add cache-busting query param
+                const url = CONFIG.GIST_URL + '?t=' + Date.now();
+
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayOnMap(data);
+
+            } catch (error) {
+                console.error('Error fetching location:', error);
+                document.getElementById('status-text').textContent = 'No location data yet';
+                document.getElementById('status-dot').classList.remove('online');
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🔄 Refresh';
+        }
+
+        // =====================================================
+        // INITIALIZATION
+        // =====================================================
+
+        // Wait for map image to load before positioning markers
+        document.getElementById('map-image').addEventListener('load', function() {
+            fetchLocation();
+
+            // Auto-refresh
+            if (refreshTimer) clearInterval(refreshTimer);
+            refreshTimer = setInterval(fetchLocation, CONFIG.REFRESH_INTERVAL);
+        });
+
+        // Handle window resize - reposition markers
+        window.addEventListener('resize', function() {
+            const data = window.lastLocationData;
+            if (data) displayOnMap(data);
+        });
+    </script>
+</body>
+</html>

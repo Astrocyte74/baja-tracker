@@ -1,0 +1,47 @@
+{
+  "shortcut": {
+    "name": "Baja Tracker - Share Location",
+    "actions": [
+      {
+        "type": "location",
+        "description": "Get Current Location"
+      },
+      {
+        "type": "date",
+        "description": "Get Current Date"
+      },
+      {
+        "type": "text",
+        "content": "{\n  \"name\": \"YOUR_NAME_HERE\",\n  \"lat\": {{latitude}},\n  \"lng\": {{longitude}},\n  \"timestamp\": \"{{current_date_iso8601}}\"\n}"
+      },
+      {
+        "type": "url",
+        "method": "PATCH",
+        "url": "https://api.github.com/gists/YOUR_GIST_ID_HERE",
+        "headers": {
+          "Authorization": "token YOUR_GITHUB_TOKEN_HERE",
+          "Content-Type": "application/json"
+        },
+        "body_type": "json",
+        "body": {
+          "files": {
+            "location.json": {
+              "content": "{{text_above}}"
+            }
+          }
+        }
+      },
+      {
+        "type": "notification",
+        "title": "Location Shared!",
+        "body": "Your location has been updated on the Baja map"
+      }
+    ]
+  },
+  "setup_instructions": [
+    "Replace YOUR_NAME_HERE with your display name",
+    "Replace YOUR_GIST_ID_HERE with your GitHub Gist ID",
+    "Replace YOUR_GITHUB_TOKEN_HERE with your personal access token",
+    "Save and add to Home Screen"
+  ]
+}
