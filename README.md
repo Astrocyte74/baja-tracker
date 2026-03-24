@@ -4,7 +4,7 @@ Track your friends on a custom Baja California map with Book of Mormon locations
 
 ## How It Works
 
-1. **iOS Shortcut** on your friend's phone sends their location to GitHub
+1. **Mobile share page** on your friend's phone sends their location to GitHub
 2. **GitHub Gist** stores the latest location as JSON
 3. **Web App** displays the location on your custom map
 4. **GitHub Pages** hosts everything for free
@@ -63,19 +63,28 @@ const CONFIG = {
 
 ---
 
-## iOS Shortcut Setup
+## Phone Setup
 
-### Option A: Import Shortcut (Easiest)
+### Option A: Use `share.html` on the iPhone (recommended)
 
-1. Open `BajaTracker.shortcut` on your iPhone
-2. It will prompt you to enter:
-   - Your GitHub username
-   - Your Gist ID
-   - Your Personal Access Token
-   - Your display name
-3. Add to Home Screen for easy access
+This is the simplest path. It removes the iOS Shortcuts setup entirely.
 
-### Option B: Create Manually
+1. Deploy the site first so `share.html` is live on GitHub Pages
+2. On the traveler's iPhone, open:
+   `https://yourusername.github.io/repo-name/share.html`
+3. Enter:
+   - Display name
+   - Gist ID
+   - GitHub token with only `gist` scope
+4. Tap **Save On This iPhone**
+5. Tap **Share Current Location**
+6. In Safari, use Share -> **Add to Home Screen** for one-tap updates
+
+The page stores the token only in that browser on that phone using local storage.
+
+### Option B: iOS Shortcut
+
+The `BajaTracker.shortcut` file in this repo is only a reference template, not a real Apple-importable shortcut package. Use the manual steps below only if you specifically want to rebuild the shortcut yourself in the Shortcuts app.
 
 1. Open the **Shortcuts** app on iPhone
 2. Create a new shortcut
@@ -133,7 +142,7 @@ const CONFIG = {
 
 ### Test the Shortcut
 
-1. Run the shortcut
+1. Run `share.html` on the phone or run the shortcut
 2. Check your GitHub gist - it should be updated
 3. Refresh your web app - you should see the marker!
 
@@ -190,9 +199,10 @@ baja-tracker/
 - Adjust MAP_BOUNDS in index.html
 - Make sure lat/lng are correct (lat is north/south, lng is east/west)
 
-### Shortcut fails silently
+### Phone uploader or shortcut fails
 - Check your GitHub token has `gist` permission
 - Verify the Gist ID is correct
+- If using `share.html`, confirm Safari has location permission for the site
 - Try the API call manually with curl
 
 ---

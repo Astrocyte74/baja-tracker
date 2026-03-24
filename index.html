@@ -276,7 +276,8 @@
 
     <div class="setup-instructions">
         <h2>📱 iOS Shortcut Setup</h2>
-        <p>Download the shortcut and configure it with your GitHub Gist ID and token.</p>
+        <p>Skip Shortcuts entirely and use <a href="share.html" style="color: #4ade80; font-weight: 700;">share.html</a> on the iPhone for a one-button location update page.</p>
+        <p>The `.shortcut` file in this repo is only a reference template, not a directly importable Apple Shortcut.</p>
 
         <h3>Step 1: Create a GitHub Gist</h3>
         <p>Go to <a href="https://gist.github.com" target="_blank" style="color: #4ade80;">gist.github.com</a> and create a new gist:</p>
@@ -300,6 +301,9 @@
         <p>Edit the shortcut and replace these values:</p>
         <pre>GIST_ID: "your-gist-id-here"
 GITHUB_TOKEN: "your-token-here"</pre>
+
+        <h3>Recommended: Use the phone uploader instead</h3>
+        <p>Open <a href="share.html" style="color: #4ade80;">share.html</a> on the traveler's iPhone, enter the Gist ID and token once, then tap <strong>Share Current Location</strong>.</p>
     </div>
 
     <script>
@@ -308,18 +312,18 @@ GITHUB_TOKEN: "your-token-here"</pre>
         // =====================================================
         const CONFIG = {
             // GitHub Gist ID where location is stored
-            GIST_ID: 'YOUR_GIST_ID_HERE',
+            GIST_ID: '06a3d4ea9f93c9367dcfdd77ba19d817',
 
             // Raw GitHubusercontent URL (works without token for public gists)
-            GIST_URL: 'https://gist.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_GIST_ID/raw/location.json',
+            GIST_URL: 'https://gist.githubusercontent.com/Astrocyte74/06a3d4ea9f93c9367dcfdd77ba19d817/raw/location.json',
 
             // Map bounds (lat/lng of map corners)
             // Adjust these to match your map's georeferencing
             MAP_BOUNDS: {
-                north: 32.5,   // Top of map (US border area)
-                south: 22.5,   // Bottom of map (Cabo San Lucas)
-                west: -118.5,  // Left of map (Pacific)
-                east: -109.0   // Right of map (Gulf of California)
+                north: 33.2475,  // Top of map
+                south: 22.3387,  // Bottom of map
+                west: -114.0162,   // Left of map (Pacific)
+                east: -112.1601    // Right of map (Gulf)
             },
 
             // How often to auto-refresh (milliseconds)

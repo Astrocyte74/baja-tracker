@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baja Tracker - Share Location</title>
+    <style>
+        :root {
+            --bg: #f3efe4;
+            --card: rgba(255, 250, 240, 0.9);
+            --ink: #2d2419;
+            --muted: #6e6356;
+            --accent: #c65d2d;
+            --accent-dark: #8f3f1e;
+            --line: rgba(45, 36, 25, 0.14);
+            --ok: #1f7a4f;
+            --warn: #8a5a00;
+            --shadow: 0 18px 45px rgba(77, 46, 23, 0.16);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top, rgba(255, 233, 196, 0.85), transparent 38%),
+                linear-gradient(180deg, #d9c29c 0%, #f1eadb 34%, #e6d4b0 100%);
+        }
+
+        main {
+            width: min(100%, 560px);
+            margin: 0 auto;
+            padding: 28px 18px 40px;
+        }
+
+        .hero {
+            padding: 22px 18px;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(255, 248, 236, 0.96), rgba(250, 241, 224, 0.92));
+            box-shadow: var(--shadow);
+        }
+
+        h1, h2 {
+            margin: 0 0 10px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 8vw, 3rem);
+        }
+
+        h2 {
+            font-size: 1.15rem;
+        }
+
+        p {
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .lede {
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .card {
+            margin-top: 18px;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--card);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(6px);
+        }
+
+        label {
+            display: block;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid rgba(45, 36, 25, 0.18);
+            border-radius: 14px;
+            font: inherit;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        input:focus {
+            outline: 2px solid rgba(198, 93, 45, 0.25);
+            border-color: var(--accent);
+        }
+
+        .actions {
+            display: grid;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        button {
+            width: 100%;
+            border: 0;
+            border-radius: 999px;
+            padding: 14px 18px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: linear-gradient(180deg, var(--accent), var(--accent-dark));
+            color: #fff8f3;
+        }
+
+        .secondary {
+            background: rgba(255, 255, 255, 0.72);
+            color: var(--ink);
+            border: 1px solid rgba(45, 36, 25, 0.12);
+        }
+
+        .note {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.58);
+            color: var(--muted);
+        }
+
+        .status {
+            margin-top: 14px;
+            padding: 13px 14px;
+            border-radius: 14px;
+            border: 1px solid transparent;
+            font-weight: 600;
+        }
+
+        .status.info {
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.62);
+            border-color: rgba(45, 36, 25, 0.08);
+        }
+
+        .status.ok {
+            color: var(--ok);
+            background: rgba(31, 122, 79, 0.1);
+            border-color: rgba(31, 122, 79, 0.18);
+        }
+
+        .status.warn {
+            color: var(--warn);
+            background: rgba(138, 90, 0, 0.1);
+            border-color: rgba(138, 90, 0, 0.16);
+        }
+
+        .meta {
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .meta strong {
+            color: var(--ink);
+        }
+
+        .small {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.92em;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section class="hero">
+            <h1>Share Your Spot</h1>
+            <p class="lede">Open this on the traveler's iPhone, save the gist details once, then tap one button to update the Baja map. No iOS Shortcut setup required.</p>
+        </section>
+
+        <section class="card">
+            <h2>Phone Setup</h2>
+
+            <label for="displayName">Display name</label>
+            <input id="displayName" type="text" placeholder="Traveler">
+
+            <label for="gistId">GitHub Gist ID</label>
+            <input id="gistId" type="text" placeholder="06a3d4ea9f93c9367dcfdd77ba19d817" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+            <label for="githubToken">GitHub token with <code>gist</code> scope</label>
+            <input id="githubToken" type="password" placeholder="ghp_xxxxxxxxxxxxx" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+            <div class="actions">
+                <button class="secondary" id="saveBtn" type="button">Save On This iPhone</button>
+                <button class="primary" id="shareBtn" type="button">Share Current Location</button>
+                <button class="secondary" id="clearBtn" type="button">Clear Saved Token</button>
+            </div>
+
+            <div class="note">
+                The token is stored only in this browser on this phone using local storage. Do not use a personal all-access token here; create a dedicated token with only <code>gist</code> scope.
+            </div>
+
+            <div class="status info" id="status">Enter the gist ID and token once, then use the main button whenever you want to update the map.</div>
+            <div class="meta" id="meta"></div>
+            <div class="small">Tip: Safari -> Share -> Add to Home Screen makes this a one-tap updater.</div>
+        </section>
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'baja-tracker-share-config';
+
+        const els = {
+            displayName: document.getElementById('displayName'),
+            gistId: document.getElementById('gistId'),
+            githubToken: document.getElementById('githubToken'),
+            saveBtn: document.getElementById('saveBtn'),
+            shareBtn: document.getElementById('shareBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            status: document.getElementById('status'),
+            meta: document.getElementById('meta')
+        };
+
+        function setStatus(message, tone) {
+            els.status.className = `status ${tone}`;
+            els.status.textContent = message;
+        }
+
+        function setMeta(message) {
+            els.meta.innerHTML = message || '';
+        }
+
+        function readQueryConfig() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                displayName: params.get('name') || '',
+                gistId: params.get('gist') || '',
+                githubToken: ''
+            };
+        }
+
+        function readStoredConfig() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function getConfig() {
+            return {
+                displayName: els.displayName.value.trim() || 'Traveler',
+                gistId: els.gistId.value.trim(),
+                githubToken: els.githubToken.value.trim()
+            };
+        }
+
+        function saveConfig() {
+            const config = getConfig();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+            setStatus('Saved on this iPhone.', 'ok');
+            setMeta('You can now use <strong>Share Current Location</strong> without re-entering the token.');
+        }
+
+        function clearConfig() {
+            localStorage.removeItem(STORAGE_KEY);
+            els.githubToken.value = '';
+            setStatus('Saved token cleared from this browser.', 'warn');
+            setMeta('');
+        }
+
+        function applyConfig(config) {
+            if (!els.displayName.value && config.displayName) {
+                els.displayName.value = config.displayName;
+            }
+
+            if (!els.gistId.value && config.gistId) {
+                els.gistId.value = config.gistId;
+            }
+
+            if (!els.githubToken.value && config.githubToken) {
+                els.githubToken.value = config.githubToken;
+            }
+        }
+
+        async function updateGist(config, location) {
+            const payload = {
+                name: config.displayName,
+                lat: location.coords.latitude,
+                lng: location.coords.longitude,
+                timestamp: new Date().toISOString()
+            };
+
+            const response = await fetch(`https://api.github.com/gists/${encodeURIComponent(config.gistId)}`, {
+                method: 'PATCH',
+                headers: {
+                    'Accept': 'application/vnd.github+json',
+                    'Authorization': `token ${config.githubToken}`,
+                    'Content-Type': 'application/json',
+                    'X-GitHub-Api-Version': '2022-11-28'
+                },
+                body: JSON.stringify({
+                    files: {
+                        'location.json': {
+                            content: JSON.stringify(payload, null, 2)
+                        }
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const body = await response.text();
+                throw new Error(`GitHub API returned ${response.status}: ${body}`);
+            }
+
+            return payload;
+        }
+
+        async function shareCurrentLocation() {
+            const config = getConfig();
+
+            if (!config.gistId || !config.githubToken) {
+                setStatus('Enter the gist ID and token first.', 'warn');
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                setStatus('This browser cannot read location.', 'warn');
+                return;
+            }
+
+            setStatus('Requesting GPS location...', 'info');
+            setMeta('');
+            els.shareBtn.disabled = true;
+            els.shareBtn.textContent = 'Sharing...';
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                try {
+                    setStatus('Uploading to GitHub Gist...', 'info');
+                    const payload = await updateGist(config, position);
+                    saveConfig();
+
+                    setStatus('Location shared successfully.', 'ok');
+                    setMeta(
+                        `Saved <strong>${payload.name}</strong> at <strong>${payload.lat.toFixed(5)}, ${payload.lng.toFixed(5)}</strong><br>` +
+                        `Timestamp: <code>${payload.timestamp}</code><br>` +
+                        `GPS accuracy: about <strong>${Math.round(position.coords.accuracy)}</strong> meters`
+                    );
+                } catch (error) {
+                    setStatus('Upload failed. Check the token and gist ID.', 'warn');
+                    setMeta(`<code>${String(error.message).replace(/</g, '&lt;')}</code>`);
+                } finally {
+                    els.shareBtn.disabled = false;
+                    els.shareBtn.textContent = 'Share Current Location';
+                }
+            }, (error) => {
+                const message = error.code === error.PERMISSION_DENIED
+                    ? 'Location permission was denied.'
+                    : 'Could not get the current location.';
+
+                setStatus(message, 'warn');
+                setMeta('Open Safari settings for this site and allow location access, then try again.');
+                els.shareBtn.disabled = false;
+                els.shareBtn.textContent = 'Share Current Location';
+            }, {
+                enableHighAccuracy: true,
+                timeout: 20000,
+                maximumAge: 60000
+            });
+        }
+
+        applyConfig(readStoredConfig());
+        applyConfig(readQueryConfig());
+
+        els.saveBtn.addEventListener('click', saveConfig);
+        els.clearBtn.addEventListener('click', clearConfig);
+        els.shareBtn.addEventListener('click', shareCurrentLocation);
+    </script>
+</body>
+</html>
